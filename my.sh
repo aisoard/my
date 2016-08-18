@@ -116,11 +116,13 @@ my () {
 			unset SDIR
 		fi
 
-		if [ $DIR ] && [ ! -d $DIR ]; then
+		if [ ! "$DIR" ] || [ ! -d "$DIR" ]; then
 			echo "my: could not find '$1' directory"
 			echo "Try 'my --list' for a list of directories."
 			return -1
 		fi
+
+		DIR="${DIR%/}"
 
 		[ -d "$DIR/bin" ] \
 			&& add_to_path PATH "$DIR/bin"
