@@ -86,7 +86,7 @@ my () {
 				add_to_path PATH "/usr/bin"
 				add_to_path PATH "/usr/sbin"
 				[ $SILENT ] || echo "Finalize environment"
-				my --absolute "" "/usr"
+				my --absolute "/" "/usr"
 				;;
 			'-'*)
 				echo "my: unrecognized option '$1'"
