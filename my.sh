@@ -52,6 +52,14 @@ my () {
 				echo
 				echo "Use 'my --list' to get the list of found directories."
 				echo "Use 'my --reset' to reset the environment variables."
+				echo
+				echo "Complete list of options:"
+				echo -e "\t-v | --verbose         \texplain what has been done"
+				echo -e "\t-q | --quiet | --silent\tonly print error messages"
+				echo -e "\t-l | --list [DIR]      \tprint the list of found directories that begin with DIR"
+				echo -e "\t-a | --absolute        \tassume DIR is an absolute path (do not search)"
+				echo -e "\t--reset                \treset the environment to a minimal working set (assuming: $python)"
+				echo -e "\t--python X.Y           \tassume a python version of X.Y (current: $python)"
 				return 0
 				;;
 			'-v'|'--verbose')
@@ -86,12 +94,16 @@ my () {
 				add_to_path PATH "/usr/bin"
 				add_to_path PATH "/usr/sbin"
 				[ $SILENT ] || echo "Finalize environment"
-				my --absolute "/" "/usr"
+				my --python ${python#python} --absolute "/" "/usr"
+				;;
+			'--python')
+				shift
+				python="python$1"
 				;;
 			'-'*)
 				echo "my: unrecognized option '$1'"
 				echo "Try 'my --help' for more information."
-				return -1
+				return 1
 				;;
 			*)
 				break
@@ -119,7 +131,7 @@ my () {
 		if [ ! "$DIR" ] || [ ! -d "$DIR" ]; then
 			echo "my: could not find '$1' directory"
 			echo "Try 'my --list' for a list of directories."
-			return -1
+			return 1
 		fi
 
 		DIR="${DIR%/}"
