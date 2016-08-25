@@ -60,6 +60,7 @@ my () {
 				echo -e "\t-a | --absolute        \tassume DIR is an absolute path (do not search)"
 				echo -e "\t--reset                \treset the environment to a minimal working set (assuming: $python)"
 				echo -e "\t--python X.Y           \tassume a python version of X.Y (current: $python)"
+				echo -e "\t--no-python            \tdo not fill PYTHONPATH"
 				return 0
 				;;
 			'-v'|'--verbose')
@@ -94,11 +95,14 @@ my () {
 				add_to_path PATH "/usr/bin"
 				add_to_path PATH "/usr/sbin"
 				[ $SILENT ] || echo "Finalize environment"
-				my --python ${python#python} --absolute "/" "/usr"
+				my --no-python --absolute "/" "/usr"
 				;;
 			'--python')
 				shift
 				python="python$1"
+				;;
+			'--no-python')
+				python=""
 				;;
 			'-'*)
 				echo "my: unrecognized option '$1'"
@@ -148,7 +152,7 @@ my () {
 				add_to_path LIBRARY_PATH "$DIR/$LIB"
 				[ -d "$DIR/$LIB/pkgconfig" ] \
 					&& add_to_path PKG_CONFIG_PATH "$DIR/$LIB/pkgconfig"
-				[ -d "$DIR/$LIB/$python/site-packages" ] \
+				[ $python ] && [ -d "$DIR/$LIB/$python/site-packages" ] \
 					&& add_to_path PYTHONPATH "$DIR/$LIB/$python/site-packages"
 			fi
 		done
