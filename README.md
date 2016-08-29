@@ -20,16 +20,15 @@ In your shell:
 INSTALL
 -------
 
-Create a `.opt` directory into your home directory.
-
-Create a subdirectory in `~/.opt` for each user program you want to easily manage.
+Create a `~/.opt` directory into your home directory and clone this repository as `~/.opt/my`.
+Similarly, create a subdirectory in `~/.opt` for each user program you want to easily manage.
 
 
 ### Bash
 
-Add `source /path/to/my.sh` in your `.bashrc`, `.bash_profile` or `.profile`.
+Add `source ~/.opt/my.sh` in your `.bashrc`, `.bash_profile` or `.profile`.
 
-You can also add additional search directories:
+You can add additional search directories:
 
     MY_SEARCH_DIR="$MY_SEARCH_DIR /other/search/path"
 

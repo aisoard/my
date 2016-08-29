@@ -1,5 +1,6 @@
 # my command
 export MY_SEARCH_DIR="$HOME/.opt /opt"
+export MY_OPT_DIR="$HOME/.opt/my"
 export MY_LIB_DIR="lib"
 
 case "${1:-$(uname -m)}" in
@@ -25,12 +26,7 @@ add_to_path () {
 	esac
 }
 
-python_dir_name () {
-	${1:-python} -V 2>&1 | sed 's/^Python \([0-9][0-9]*\)\.\([0-9][0-9]*\)\..*$/python\1.\2/'
-}
-
 my () {
-	local python=$(python_dir_name)
 	while [ $# -gt 0 ]; do
 		case $1 in
 			'-h'|'--help')
@@ -56,8 +52,6 @@ my () {
 				echo -e "\t-l | --list [DIR]      \tprint the list of found directories that begin with DIR"
 				echo -e "\t-a | --absolute        \tassume DIR is an absolute path (do not search)"
 				echo -e "\t--reset                \treset the environment to a minimal working set (assuming: $python)"
-				echo -e "\t--python X.Y           \tassume a python version of X.Y (current: $python)"
-				echo -e "\t--no-python            \tdo not fill PYTHONPATH"
 				return 0
 				;;
 			'-v'|'--verbose')
@@ -80,26 +74,19 @@ my () {
 			'--reset')
 				[ $SILENT ] || echo "Reset environment"
 				export PATH="" && [ $SILENT ] || echo "Erase PATH"
-				export LD_LIBRARY_PATH="" && [ $SILENT ] || echo "Erase LD_LIBRARY_PATH"
-				export LIBRARY_PATH="" && [ $SILENT ] || echo "Erase LIBRARY_PATH"
-				export PKG_CONFIG_PATH="" && [ $SILENT ] || echo "Erase PKG_CONFIG_PATH"
-				export PYTHONPATH="" && [ $SILENT ] || echo "Erase PYTHONPATH"
-				export CPATH="" && [ $SILENT ] || echo "Erase CPATH"
-				export MANPATH="" && [ $SILENT ] || echo "Erase MANPATH"
+				unset LD_LIBRARY_PATH && [ $SILENT ] || echo "Erase LD_LIBRARY_PATH"
+				unset LIBRARY_PATH && [ $SILENT ] || echo "Erase LIBRARY_PATH"
+				unset PKG_CONFIG_PATH && [ $SILENT ] || echo "Erase PKG_CONFIG_PATH"
+				unset PYTHONPATH && [ $SILENT ] || echo "Erase PYTHONPATH"
+				unset CPATH && [ $SILENT ] || echo "Erase CPATH"
+				unset MANPATH && [ $SILENT ] || echo "Erase MANPATH"
 				[ $SILENT ] || echo "Bootstrap environment"
 				add_to_path PATH "/bin"
 				add_to_path PATH "/sbin"
 				add_to_path PATH "/usr/bin"
 				add_to_path PATH "/usr/sbin"
 				[ $SILENT ] || echo "Finalize environment"
-				my --no-python --absolute "/" "/usr"
-				;;
-			'--python')
-				shift
-				python="python$1"
-				;;
-			'--no-python')
-				python=""
+				my --absolute "/" "/usr"
 				;;
 			'-'*)
 				echo "my: unrecognized option '$1'"
@@ -149,8 +136,14 @@ my () {
 				add_to_path LIBRARY_PATH "$DIR/$LIB"
 				[ -d "$DIR/$LIB/pkgconfig" ] \
 					&& add_to_path PKG_CONFIG_PATH "$DIR/$LIB/pkgconfig"
-				[ $python ] && [ -d "$DIR/$LIB/$python/site-packages" ] \
-					&& add_to_path PYTHONPATH "$DIR/$LIB/$python/site-packages"
+				local PYTHON
+				for PYTHON in "$DIR/$LIB/python"*; do
+					local PYTHON_VAR="${PYTHON#$DIR/$LIB/python}"
+					PYTHON_VAR="PYTHON${PYTHON_VAR/.}_PATH"
+					[ -d "$PYTHON/site-packages" ] \
+						&& add_to_path $PYTHON_VAR "$PYTHON/site-packages"
+				done
+				unset PYTHON
 			fi
 		done
 		unset LIB
@@ -169,6 +162,9 @@ my () {
 		unset DIR
 		shift
 	done
+
+	PATH="${PATH/"$MY_OPT_DIR/bin:"}"
+	PATH="$MY_OPT_DIR/bin:$PATH"
 }
 
-export -f add_to_path python_dir_name my
+export -f add_to_path my
