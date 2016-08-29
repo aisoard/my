@@ -1,5 +1,11 @@
 # my command
 export MY_SEARCH_DIR="$HOME/.opt /opt"
+export MY_LIB_DIR="lib"
+
+case "${1:-$(uname -m)}" in
+	"x86_64") MY_LIB_DIR="$MY_LIB_DIR lib64" ;;
+	"i"?"86") MY_LIB_DIR="$MY_LIB_DIR lib32" ;;
+esac
 
 add_to_path () {
 	local VAR=$1
@@ -19,20 +25,11 @@ add_to_path () {
 	esac
 }
 
-lib_dir_names () {
-	case "${1:-$(uname -m)}" in
-		"x86_64") echo "lib lib64" ;;
-		"i"?"86") echo "lib lib32" ;;
-		*) echo "lib" ;;
-	esac
-}
-
 python_dir_name () {
 	${1:-python} -V 2>&1 | sed 's/^Python \([0-9][0-9]*\)\.\([0-9][0-9]*\)\..*$/python\1.\2/'
 }
 
 my () {
-	local libs=$(lib_dir_names)
 	local python=$(python_dir_name)
 	while [ $# -gt 0 ]; do
 		case $1 in
@@ -146,7 +143,7 @@ my () {
 			&& add_to_path PATH "$DIR/sbin"
 
 		local LIB
-		for LIB in $libs; do
+		for LIB in $MY_LIB_DIR; do
 			if [ -d "$DIR/$LIB" ]; then
 				add_to_path LD_LIBRARY_PATH "$DIR/$LIB"
 				add_to_path LIBRARY_PATH "$DIR/$LIB"
@@ -174,4 +171,4 @@ my () {
 	done
 }
 
-export -f add_to_path lib_dir_names python_dir_name my
+export -f add_to_path python_dir_name my
