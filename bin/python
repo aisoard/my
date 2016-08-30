@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 export PATH="${PATH#"$MY_OPT_DIR/bin:"}"
-export PATH="${PATH/":$MY_OPT_DIR/bin:"/":"}"
+export PATH="${PATH/":$MY_OPT_DIR/bin:"/:}"
 export PATH="${PATH%":$MY_OPT_DIR/bin"}"
 PYTHON=${0##*/}
 

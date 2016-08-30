@@ -20,7 +20,7 @@ prepend_path () {
 			  "$1"  ) [ $SILENT ] || echo "export $VAR=\"$1\""
 				break ;;
 			*":$1:"*) [ $SILENT ] || echo "export $VAR=\"\${$VAR/':$1:'/':'}\""
-				export $VAR="${!VAR/":$1:"/':'}" ;;
+				export $VAR="${!VAR/":$1:"/:}" ;;
 			*":$1"  ) [ $SILENT ] || echo "export $VAR=\"\${$VAR%':$1'}\""
 				export $VAR="${!VAR%":$1"}" ;;
 			  "$1:"*) [ $SILENT ] || echo "export $VAR=\"$1:\${$VAR#'$1:'}\""
