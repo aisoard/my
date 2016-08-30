@@ -17,6 +17,9 @@ In your shell:
     Added '/home/user/.opt/program/include' to CPATH
     Added '/home/user/.opt/program/share/man' to MANPATH
 
+Use `my --silent program` to have a silent output.
+
+
 INSTALL
 -------
 
@@ -57,7 +60,7 @@ directory. The tree would look something like:
     │           └── ...
     ...
 
-Then, the following, depending on your shell.
+Then, do the following, depending on your shell.
 
 ### Bash
 
@@ -68,6 +71,14 @@ that by adding additional search directories to `MY_SEARCH_DIRS`:
 
     source ~/.opt/my/.sh
     MY_SEARCH_DIRS="$MY_SEARCH_DIRS /other/search/path"
+
+### Zsh
+
+Not supported yet, but planned.
+
+### Others
+
+If you would like your preferred shell to be supported, you are welcome to contribute.
 
 
 TIPS
@@ -108,3 +119,13 @@ NOTE: The reason why `my.sh` cannot be a binary and must be sourced is that it h
 shell function to be able to change the environment of the current running shell. The python
 wrappers, on the other hands, could have been compiled binaries, as they only modify the
 environment for subprocesses.
+
+
+KNOWN BUGS
+----------
+
+The processing of the options is in the order they appear. `my --silent --reset` will be silent
+but `my --reset --silent` will be verbose.
+
+Options stop being processed after the first directory. `my progname --absolute /usr/local` will
+complain about `--absolute` and `/usr/local` not beeing found in the search directories.
