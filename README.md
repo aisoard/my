@@ -129,3 +129,8 @@ but `my --reset --silent` will be verbose.
 
 Options stop being processed after the first directory. `my progname --absolute /usr/local` will
 complain about `--absolute` and `/usr/local` not beeing found in the search directories.
+
+The python wrappers are not called for script that use the absolute path in the shebang.
+Please use `#!/usr/bin/env python2` instead of `#!/usr/bin/python2` so that the interpreter that
+is used is the one found in PATH. (this advice is valid as well for any other executable script
+such as sh/bash/perl/ruby/tcl/...)
