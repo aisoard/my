@@ -30,7 +30,7 @@ Add `source ~/.opt/my.sh` in your `.bashrc`, `.bash_profile` or `.profile`.
 
 You can add additional search directories:
 
-    MY_SEARCH_DIR="$MY_SEARCH_DIR /other/search/path"
+    MY_SEARCH_DIRS="$MY_SEARCH_DIRS /other/search/path"
 
 
 TIPS

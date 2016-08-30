@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # my command
-export MY_SEARCH_DIR="$HOME/.opt /opt"
+export MY_SEARCH_DIRS="$HOME/.opt /opt"
 export MY_OPT_DIR="$HOME/.opt/my"
-export MY_LIB_DIR="lib"
+export MY_LIB_DIRS="lib"
 
 case "${1:-$(uname -m)}" in
-	"x86_64") MY_LIB_DIR="$MY_LIB_DIR lib64" ;;
-	"i"?"86") MY_LIB_DIR="$MY_LIB_DIR lib32" ;;
+	"x86_64") MY_LIB_DIRS="$MY_LIB_DIRS lib64" ;;
+	"i"?"86") MY_LIB_DIRS="$MY_LIB_DIRS lib32" ;;
 esac
 
 prepend_path () {
@@ -44,9 +44,9 @@ my () {
 				echo
 				echo "If --reset is specified, reset the relevant environment variable."
 				echo
-				echo "If --absolute is not specified, search in directories listed in MY_SEARCH_DIR:"
+				echo "If --absolute is not specified, search in directories listed in MY_SEARCH_DIRS:"
 				local DIR
-				for DIR in $MY_SEARCH_DIR; do
+				for DIR in $MY_SEARCH_DIRS; do
 					echo -e "\t$DIR/<DIR>"
 				done
 				unset DIR
@@ -66,7 +66,7 @@ my () {
 				local SILENT=true ;;
 			'-l'|'--list')
 				local DIR
-				for DIR in $MY_SEARCH_DIR; do
+				for DIR in $MY_SEARCH_DIRS; do
 					echo "Searching in '$DIR':"
 					( cd $DIR; ls -d $2*/ )
 				done
@@ -106,7 +106,7 @@ my () {
 			[ -d "$1" ] && DIR="$1"
 		else
 			local SDIR
-			for SDIR in $MY_SEARCH_DIR; do
+			for SDIR in $MY_SEARCH_DIRS; do
 				if [ -d "$SDIR/$1" ]; then
 					DIR="$SDIR/$1"
 					break
@@ -129,7 +129,7 @@ my () {
 			&& prepend_path PATH "$DIR/sbin"
 
 		local LIB
-		for LIB in $MY_LIB_DIR; do
+		for LIB in $MY_LIB_DIRS; do
 			if [ -d "$DIR/$LIB" ]; then
 				prepend_path LD_LIBRARY_PATH "$DIR/$LIB"
 				prepend_path LIBRARY_PATH "$DIR/$LIB"
