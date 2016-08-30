@@ -24,6 +24,6 @@ python_var_name () {
 
 PYTHONPATH_VAR="$(python_var_name "$PYTHON")"
 export PYTHONPATH="${!PYTHONPATH_VAR}"
-unset "${!MY_PYTHON*}"
+unset ${!MY_PYTHON*}
 
 "$PYTHON" "$@"
