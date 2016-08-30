@@ -13,6 +13,11 @@ fi
 PYTHON="${0##*/}"
 PYTHON="$(which $PYTHON 2> /dev/null)"
 
+if [ -z "$PYTHON" ]; then
+	echo "${0##*/} was not found in PATH='$PATH'"
+	exit 1
+fi
+
 if [ "$0" = "$PYTHON" ]; then
 	echo "Error: Infinite loop detected."
 	echo "Are there links to '$MY_OPT_DIR/bin' still in PATH?"
