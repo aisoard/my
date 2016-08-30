@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 # my command
 export MY_SEARCH_DIR="$HOME/.opt /opt"
 export MY_OPT_DIR="$HOME/.opt/my"
@@ -8,33 +9,40 @@ case "${1:-$(uname -m)}" in
 	"i"?"86") MY_LIB_DIR="$MY_LIB_DIR lib32" ;;
 esac
 
-add_to_path () {
+prepend_path () {
 	local VAR=$1
 	shift
-	case ":${!VAR}:" in
-		*":$1:"*)
-			[ $SILENT ] || echo "Found '$1' in $VAR already"
-			;;
-		"::")
-			[ $SILENT ] || echo "Wrote '$1' in $VAR"
-			export $VAR="$1"
-			;;
-		*)
-			[ $SILENT ] || echo "Added '$1' to $VAR"
-			export $VAR="$1:${!VAR}"
-			;;
-	esac
+	while true; do
+		case "${!VAR}" in
+			   ""   ) [ $SILENT ] || echo "export $VAR=\"$1\""
+				export $VAR="$1"
+				break ;;
+			  "$1"  ) [ $SILENT ] || echo "export $VAR=\"$1\""
+				break ;;
+			*":$1:"*) [ $SILENT ] || echo "export $VAR=\"\${$VAR/':$1:'/':'}\""
+				export $VAR="${!VAR/":$1:"/':'}" ;;
+			*":$1"  ) [ $SILENT ] || echo "export $VAR=\"\${$VAR%':$1'}\""
+				export $VAR="${!VAR%":$1"}" ;;
+			  "$1:"*) [ $SILENT ] || echo "export $VAR=\"$1:\${$VAR#'$1:'}\""
+				break ;;
+				   *) [ $SILENT ] || echo "export $VAR=\"$1:\$$VAR\""
+				export $VAR="$1:${!VAR}"
+				break ;;
+		esac
+	done
 }
 
 my () {
 	while [ $# -gt 0 ]; do
 		case $1 in
 			'-h'|'--help')
-				echo "Usage: my [--silent] [--absolute] DIR [...]"
+				echo "Usage: my [--silent] [--reset] [--absolute] DIR [...]"
 				echo
 				echo "Search for 'bin', 'lib', 'include' sub-directories and add them"
 				echo "to the relevant environment variables (PATH, LD_LIBRARY_PATH, ...)."
 				echo "Also source '.mydeps' if it exists. (used for dependencies)"
+				echo
+				echo "If --reset is specified, reset the relevant environment variable."
 				echo
 				echo "If --absolute is not specified, search in directories listed in MY_SEARCH_DIR:"
 				local DIR
@@ -44,58 +52,49 @@ my () {
 				unset DIR
 				echo
 				echo "Use 'my --list' to get the list of found directories."
-				echo "Use 'my --reset' to reset the environment variables."
 				echo
 				echo "Complete list of options:"
 				echo -e "\t-v | --verbose         \texplain what has been done"
 				echo -e "\t-q | --quiet | --silent\tonly print error messages"
 				echo -e "\t-l | --list [DIR]      \tprint the list of found directories that begin with DIR"
 				echo -e "\t-a | --absolute        \tassume DIR is an absolute path (do not search)"
-				echo -e "\t--reset                \treset the environment to a minimal working set (assuming: $python)"
-				return 0
-				;;
+				echo -e "\t--reset                \treset the environment to a minimal working set"
+				return 0 ;;
 			'-v'|'--verbose')
-				local SILENT=
-				;;
+				local SILENT= ;;
 			'-q'|'--quiet'|'--silent')
-				local SILENT=true
-				;;
+				local SILENT=true ;;
 			'-l'|'--list')
 				local DIR
 				for DIR in $MY_SEARCH_DIR; do
 					echo "Searching in '$DIR':"
 					( cd $DIR; ls -d $2*/ )
 				done
-				return 0
-				;;
+				return 0 ;;
 			'-a'|'--absolute')
-				local ABSOLUTE=true
-				;;
+				local ABSOLUTE=true ;;
 			'--reset')
-				[ $SILENT ] || echo "Reset environment"
-				export PATH="" && [ $SILENT ] || echo "Erase PATH"
-				unset LD_LIBRARY_PATH && [ $SILENT ] || echo "Erase LD_LIBRARY_PATH"
-				unset LIBRARY_PATH && [ $SILENT ] || echo "Erase LIBRARY_PATH"
-				unset PKG_CONFIG_PATH && [ $SILENT ] || echo "Erase PKG_CONFIG_PATH"
-				unset PYTHONPATH && [ $SILENT ] || echo "Erase PYTHONPATH"
-				unset CPATH && [ $SILENT ] || echo "Erase CPATH"
-				unset MANPATH && [ $SILENT ] || echo "Erase MANPATH"
-				[ $SILENT ] || echo "Bootstrap environment"
-				add_to_path PATH "/bin"
-				add_to_path PATH "/sbin"
-				add_to_path PATH "/usr/bin"
-				add_to_path PATH "/usr/sbin"
-				[ $SILENT ] || echo "Finalize environment"
-				my --absolute "/" "/usr"
-				;;
+				[ $SILENT ] || echo "export PATH=''"
+				export PATH=''
+				[ $SILENT ] || echo "unset LD_LIBRARY_PATH"
+				unset LD_LIBRARY_PATH
+				[ $SILENT ] || echo "unset LIBRARY_PATH"
+				unset LIBRARY_PATH
+				[ $SILENT ] || echo "unset PKG_CONFIG_PATH"
+				unset PKG_CONFIG_PATH
+				[ $SILENT ] || echo "unset PYTHONPATH ${!MY_PYTHON*}"
+				unset PYTHONPATH ${!MY_PYTHON*}
+				[ $SILENT ] || echo "unset CPATH"
+				unset CPATH
+				[ $SILENT ] || echo "unset MANPATH"
+				unset MANPATH
+				my --absolute "/" "/usr" ;;
 			'-'*)
 				echo "my: unrecognized option '$1'"
 				echo "Try 'my --help' for more information."
-				return 1
-				;;
+				return 1 ;;
 			*)
-				break
-				;;
+				break ;;
 		esac
 		shift
 	done
@@ -125,23 +124,24 @@ my () {
 		DIR="${DIR%/}"
 
 		[ -d "$DIR/bin" ] \
-			&& add_to_path PATH "$DIR/bin"
+			&& prepend_path PATH "$DIR/bin"
 		[ -d "$DIR/sbin" ] \
-			&& add_to_path PATH "$DIR/sbin"
+			&& prepend_path PATH "$DIR/sbin"
 
 		local LIB
 		for LIB in $MY_LIB_DIR; do
 			if [ -d "$DIR/$LIB" ]; then
-				add_to_path LD_LIBRARY_PATH "$DIR/$LIB"
-				add_to_path LIBRARY_PATH "$DIR/$LIB"
+				prepend_path LD_LIBRARY_PATH "$DIR/$LIB"
+				prepend_path LIBRARY_PATH "$DIR/$LIB"
 				[ -d "$DIR/$LIB/pkgconfig" ] \
-					&& add_to_path PKG_CONFIG_PATH "$DIR/$LIB/pkgconfig"
+					&& prepend_path PKG_CONFIG_PATH "$DIR/$LIB/pkgconfig"
 				local PYTHON
 				for PYTHON in "$DIR/$LIB/python"*; do
 					local PYTHON_VAR="${PYTHON#$DIR/$LIB/python}"
-					PYTHON_VAR="PYTHON${PYTHON_VAR/.}_PATH"
+					PYTHON_VAR="MY_PYTHON${PYTHON_VAR/.}_PATH"
 					[ -d "$PYTHON/site-packages" ] \
-						&& add_to_path $PYTHON_VAR "$PYTHON/site-packages"
+						&& prepend_path $PYTHON_VAR "$PYTHON/site-packages"
+					unset PYTHON_VAR
 				done
 				unset PYTHON
 			fi
@@ -149,12 +149,12 @@ my () {
 		unset LIB
 
 		[ -d "$DIR/include" ] \
-			&& add_to_path CPATH "$DIR/include"
+			&& prepend_path CPATH "$DIR/include"
 
 		[ -d "$DIR/man" ] \
-			&& add_to_path MANPATH "$DIR/man"
+			&& prepend_path MANPATH "$DIR/man"
 		[ -d "$DIR/share/man" ] \
-			&& add_to_path MANPATH "$DIR/share/man"
+			&& prepend_path MANPATH "$DIR/share/man"
 
 		[ -f "$DIR/.mydeps" ] \
 			&& source "$DIR/.mydeps"
@@ -163,8 +163,7 @@ my () {
 		shift
 	done
 
-	PATH="${PATH/"$MY_OPT_DIR/bin:"}"
-	PATH="$MY_OPT_DIR/bin:$PATH"
+	prepend_path PATH "$MY_OPT_DIR/bin"
 }
 
-export -f add_to_path my
+export -f prepend_path my
