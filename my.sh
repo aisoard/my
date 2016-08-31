@@ -9,28 +9,7 @@ case "${1:-$(uname -m)}" in
 	"i"?"86") MY_LIB_DIRS="$MY_LIB_DIRS lib32" ;;
 esac
 
-prepend_path () {
-	local VAR=$1
-	shift
-	while true; do
-		case "${!VAR}" in
-			   ""   ) [ $SILENT ] || echo "export $VAR=\"$1\""
-				export $VAR="$1"
-				break ;;
-			  "$1"  ) [ $SILENT ] || echo "export $VAR=\"$1\""
-				break ;;
-			*":$1:"*) [ $SILENT ] || echo "export $VAR=\"\${$VAR/':$1:'/':'}\""
-				export $VAR="${!VAR/":$1:"/:}" ;;
-			*":$1"  ) [ $SILENT ] || echo "export $VAR=\"\${$VAR%':$1'}\""
-				export $VAR="${!VAR%":$1"}" ;;
-			  "$1:"*) [ $SILENT ] || echo "export $VAR=\"$1:\${$VAR#'$1:'}\""
-				break ;;
-				   *) [ $SILENT ] || echo "export $VAR=\"$1:\$$VAR\""
-				export $VAR="$1:${!VAR}"
-				break ;;
-		esac
-	done
-}
+source $MY_OPT_DIR/prepend.sh
 
 my () {
 	while [ $# -gt 0 ]; do
@@ -74,19 +53,19 @@ my () {
 			'-a'|'--absolute')
 				local ABSOLUTE=true ;;
 			'--reset')
-				[ $SILENT ] || echo "export PATH=''"
+				[ $SILENT ] || echo "reset PATH"
 				export PATH=''
-				[ $SILENT ] || echo "unset LD_LIBRARY_PATH"
+				[ $SILENT ] || echo "reset LD_LIBRARY_PATH"
 				unset LD_LIBRARY_PATH
-				[ $SILENT ] || echo "unset LIBRARY_PATH"
+				[ $SILENT ] || echo "reset LIBRARY_PATH"
 				unset LIBRARY_PATH
-				[ $SILENT ] || echo "unset PKG_CONFIG_PATH"
+				[ $SILENT ] || echo "reset PKG_CONFIG_PATH"
 				unset PKG_CONFIG_PATH
-				[ $SILENT ] || echo "unset PYTHONPATH ${!MY_PYTHON*}"
+				[ $SILENT ] || echo "reset PYTHONPATH ${!MY_PYTHON*}"
 				unset PYTHONPATH ${!MY_PYTHON*}
-				[ $SILENT ] || echo "unset CPATH"
+				[ $SILENT ] || echo "reset CPATH"
 				unset CPATH
-				[ $SILENT ] || echo "unset MANPATH"
+				[ $SILENT ] || echo "reset MANPATH"
 				unset MANPATH
 				my --absolute "/" "/usr" ;;
 			'-'*)
@@ -166,4 +145,4 @@ my () {
 	prepend_path PATH "$MY_OPT_DIR/bin"
 }
 
-export -f prepend_path my
+export -f my
