@@ -9,7 +9,7 @@ G="$(tput setaf 2)" # Green
 test () {
 	SILENT=true
 	TEST=$1
-	prepend_path TEST "a" "a"
+	prepend_path TEST "a"
 	if [ "$TEST" = "$2" ]; then
 		echo "[${G}PASS${Z}] '$1' -> '$2'"
 	else
