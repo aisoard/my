@@ -1,27 +1,12 @@
 #!/usr/bin/env bash
 
-export PATH="${PATH#"$MY_OPT_DIR/bin:"}"
-export PATH="${PATH/":$MY_OPT_DIR/bin:"/:}"
-export PATH="${PATH%":$MY_OPT_DIR/bin"}"
-
-if [ "$PATH" = "$MY_OPT_DIR/bin" ]; then
-	echo "Error: PATH would be empty after removing '$MY_OPT_DIR/bin'"
-	echo "PATH='$PATH'"
-	exit 1
-fi
-
 PYTHON="${0##*/}"
-PYTHON="$(which $PYTHON 2> /dev/null)"
-
-if [ -z "$PYTHON" ]; then
-	echo "${0##*/} was not found in PATH='$PATH'"
-	exit 1
-fi
+for PYTHON in $(which -a $PYTHON 2> /dev/null); do
+	[ "$0" != "$PYTHON" ] && break
+done
 
 if [ "$0" = "$PYTHON" ]; then
-	echo "Error: Infinite loop detected."
-	echo "Are there links to '$MY_OPT_DIR/bin' still in PATH?"
-	echo "PATH='$PATH'"
+	echo "$0: actual ${0##*/} was not found"
 	exit 1
 fi
 
@@ -31,6 +16,5 @@ python_var_name () {
 
 PYTHONPATH_VAR="$(python_var_name "$PYTHON")"
 export PYTHONPATH="${!PYTHONPATH_VAR}"
-export PATH="$MY_OPT_DIR/bin:$PATH"
 
 "$PYTHON" "$@"
